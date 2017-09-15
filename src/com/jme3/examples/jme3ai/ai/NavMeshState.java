@@ -234,7 +234,11 @@ public class NavMeshState extends BaseAppState {
 
     //looks at userData for navMesh
     private Mesh findNavMesh() {
-        return (Mesh) app.getRootNode().getUserData(DataKey.NAVMESH);
+        Mesh mesh = app.getRootNode().getUserData(DataKey.NAVMESH);
+        if (mesh == null) {
+            mesh = ((Geometry) app.getRootNode().getChild(DataKey.NAVMESH)).getMesh();
+        }
+        return mesh;
     }
 
     //Displays the NavMesh for debugging.
