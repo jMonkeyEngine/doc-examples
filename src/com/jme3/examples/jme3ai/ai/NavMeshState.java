@@ -110,7 +110,7 @@ public class NavMeshState extends BaseAppState {
         //Constraints >= 0, default=1
         generator.setMaxTraversableStep(0.3f);
         //The maximum slope that is considered traversable. (In degrees.)
-        //Constraints>= 0, default=48
+        //Constraints >= 0, default=48
         generator.setMaxTraversableSlope(50.0f);
         //Indicates whether ledges should be considered un-walkable.
         //Constraints None, default=false
@@ -182,7 +182,7 @@ public class NavMeshState extends BaseAppState {
         geom.setModelBound(new BoundingBox());
         //display the mesh
         showGeometry(geom, ColorRGBA.Green);
-        //saves navMesh to rootNode
+        //saves navMesh to rootNode UserData
         saveNavMesh(navMesh);
         //save the navmesh to user.home for loading 
         exportNavMesh(geom, DataKey.NAVMESH);
