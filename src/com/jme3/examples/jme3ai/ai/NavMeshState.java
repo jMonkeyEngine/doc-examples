@@ -1,15 +1,36 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2017, jMonkeyEngine All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of 'jMonkeyEngine' nor the names of its contributors may 
+ *   be used to endorse or promote products derived from this software without 
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.jme3.examples.jme3ai.ai;
 
+import com.jme3.ai.navmesh.NavMesh;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.asset.plugins.FileLocator;
-import com.jme3.bounding.BoundingBox;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
@@ -26,14 +47,16 @@ import com.jme3.examples.jme3ai.interfaces.DataKey;
 import com.jme3.export.binary.BinaryExporter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.critterai.nmgen.IntermediateData;
 
 /**
- * Configuartion file for generating a NavMesh. Can save, load and export a 
+ * Configuartion file for generating a NavMesh. Can save, load and export a
  * NavMesh.
- * 
+ *
  * @author sploreg
  * @author mitm
  */
@@ -42,17 +65,15 @@ public class NavMeshState extends BaseAppState {
     private static final Logger LOG = Logger.getLogger(NavMeshState.class.
             getName());
     private SimpleApplication app;
-    private Mesh navMesh;
+    private final NavMesh navMesh = new NavMesh();
+    private NavMeshGenerator generator = new NavMeshGenerator();
 
     @Override
     protected void initialize(Application app) {
         this.app = (SimpleApplication) app;
-        //comment out generateNavMesh() and uncomment everything after it to
-        //load a exported NavMesh.
-        generateNavMesh();
-//        Geometry loadNavMesh = loadNavMesh(DataKey.NAVMESH);
-//        showGeometry(loadNavMesh, ColorRGBA.Green);
-//        saveNavMesh(loadNavMesh.getMesh());
+        //generate NavMesh
+        startGenerator();
+        createNavMesh();
     }
 
     @Override
@@ -83,8 +104,8 @@ public class NavMeshState extends BaseAppState {
         //TODO: implement behavior during runtime
     }
 
-    private void generateNavMesh() {
-        NavMeshGenerator generator = new NavMeshGenerator();
+    private void startGenerator() {
+        generator = new NavMeshGenerator();
         //The width and depth resolution used when sampling the source geometry. 
         //outdoors = agentRadius/2, indoors = agentRadius/3, cellSize = 
         //agentRadius for very small cells. 
@@ -161,11 +182,17 @@ public class NavMeshState extends BaseAppState {
         //Time allowed before generation process times out in miliseconds.
         //default=10000
         generator.setTimeout(40000);
-        
+
         //the data object to use for storing data related to building the 
         //navigation mesh.
         IntermediateData data = new IntermediateData();
-        generator.setIntermediateData(null);
+        generator.setIntermediateData(data);
+    }
+
+    /**
+     * creates the nav mesh for the loaded level
+     */
+    public void createNavMesh() {
 
         Mesh mesh = new Mesh();
         GeometryBatchFactory.mergeGeometries(findGeometries(app.getRootNode(),
@@ -175,17 +202,27 @@ public class NavMeshState extends BaseAppState {
 //        Geometry meshGeom = new Geometry("MeshGeometry");
 //        meshGeom.setMesh(mesh);
 //        showGeometry(meshGeom, ColorRGBA.Yellow);
+//        saveNavMesh(meshGeom);
         
-        navMesh = generator.optimize(mesh);
+        Mesh optiMesh = generator.optimize(mesh);
+        navMesh.loadFromMesh(optiMesh);
+
         Geometry geom = new Geometry(DataKey.NAVMESH);
-        geom.setMesh(navMesh);
-        geom.setModelBound(new BoundingBox());
+        geom.setMesh(optiMesh);
         //display the mesh
         showGeometry(geom, ColorRGBA.Green);
-        //saves navMesh to rootNode UserData
-        saveNavMesh(navMesh);
-        //save the navmesh to user.home for loading 
+        //save the navmesh to Scenes/NavMesh for loading 
         exportNavMesh(geom, DataKey.NAVMESH);
+        //save geom to rootNode if you wish
+        saveNavMesh(geom);
+    }
+    
+    private void saveNavMesh(Geometry geom) {
+        Spatial previous = app.getRootNode().getChild(geom.getName());
+        if (previous != null) {
+            previous.removeFromParent();
+        }
+        app.getRootNode().attachChild(geom);
     }
 
     //Gathers all geometries in supplied node into supplied List. Uses 
@@ -214,56 +251,27 @@ public class NavMeshState extends BaseAppState {
         return geoms;
     }
 
-    //NavMesh saves as UserData on the scene's root node
-    private void saveNavMesh(Mesh navMesh) {
-        app.getRootNode().setUserData(DataKey.NAVMESH, navMesh);
-    }
-
-    /**
-     * Returns the navMesh if it is in memory, otherwise looks for it in 
-     * rootNode UserData.
-     *
-     * @return the navMesh
-     */
-    public Mesh getNavMesh() {
-        if (navMesh == null) {
-            navMesh = findNavMesh();
-        }
-        return navMesh;
-    }
-
-    //looks at userData for navMesh
-    private Mesh findNavMesh() {
-        Mesh mesh = app.getRootNode().getUserData(DataKey.NAVMESH);
-        if (mesh == null) {
-            mesh = ((Geometry) app.getRootNode().getChild(DataKey.NAVMESH)).getMesh();
-        }
-        return mesh;
-    }
-
     //Displays the NavMesh for debugging.
     private void showGeometry(Geometry geom, ColorRGBA color) {
+        Material mat;
         if (geom.getMaterial() == null) {
-            Material mat = new Material(getApplication()
+            mat = new Material(getApplication()
                     .getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setColor("Color", color);
-            mat.getAdditionalRenderState().setWireframe(true);
-            geom.setCullHint(CullHint.Never);
             geom.setMaterial(mat);
+        } else {
+            mat = geom.getMaterial();
         }
-
-        Spatial previous = app.getRootNode().getChild(geom.getName());
-        if (previous != null) {
-            previous.removeFromParent();
-        }
-        app.getRootNode().attachChild(geom);
+        mat.setColor("Color", color);
+        mat.getAdditionalRenderState().setWireframe(true);
+        geom.setCullHint(CullHint.Never);
     }
 
     //Exports the NavMesh to user.home so you can load a saved NavMesh
     private void exportNavMesh(Geometry geom, String fileName) {
-        String userHome = System.getProperty("user.home");
+        String sep = System.getProperty("file.separator");
+        Path path = Paths.get("assets" + sep + "Scenes" + sep + "NavMesh");
         BinaryExporter exporter = BinaryExporter.getInstance();
-        File file = new File(userHome + "/NavMesh/" + fileName + ".j3o");
+        File file = new File(path + sep + fileName + ".j3o");
         try {
             exporter.save(geom, file);
         } catch (IOException ex) {
@@ -271,12 +279,11 @@ public class NavMeshState extends BaseAppState {
         }
     }
 
-    //Loads a saved NavMesh
-    private Geometry loadNavMesh(String fileName) {
-        String userHome = System.getProperty("user.home");
-        app.getAssetManager().registerLocator(userHome, FileLocator.class);
-        Geometry geom = (Geometry) app.getAssetManager().loadModel("NavMesh/"
-                + fileName + ".j3o");
-        return geom;
+    /**
+     * Get the NavMesh.
+     * @return the navMesh
+     */
+    public NavMesh getNavMesh() {
+        return navMesh;
     }
 }

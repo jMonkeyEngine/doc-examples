@@ -1,12 +1,34 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (c) 2017, jMonkeyEngine All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * * Neither the name of 'jMonkeyEngine' nor the names of its contributors may 
+ *   be used to endorse or promote products derived from this software without 
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.jme3.examples.jme3ai.appstates;
 
+import com.jme3.ai.navmesh.NavMesh;
 import com.jme3.examples.jme3ai.controls.PCControl;
-import com.jme3.examples.jme3ai.ai.MovementControl;
 import com.jme3.examples.jme3ai.controls.AnimationControl;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -16,6 +38,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
+import com.jme3.examples.jme3ai.ai.NavigationControl;
 import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
@@ -38,16 +61,15 @@ import com.jme3.input.controls.MouseButtonTrigger;
 
 /**
  * Creates the character for the AI example project.
- * 
+ *
  * @author mitm
  */
 public class PCState extends BaseAppState {
 
     private SimpleApplication app;
-    private Node charNode;
+    private Node charNode, head;
     private Geometry mark;
     private ClickedListener actionListener;
-    private Node head;
 
     @Override
     protected void initialize(Application app) {
@@ -80,8 +102,10 @@ public class PCState extends BaseAppState {
         charNode.addControl(new PCControl(.6f, 1.8f, 80f));
         //control for animations
         charNode.addControl(new AnimationControl());
-        //control that calculates movement, needs AnimationControl, PCControl
-        charNode.addControl(new MovementControl(app, true));
+        Geometry navGeom = (Geometry) getApplication().getAssetManager().
+                loadModel("Scenes/NavMesh/NavMesh.j3o");
+        NavMesh navMesh = new NavMesh(navGeom.getMesh());
+        charNode.addControl(new NavigationControl(navMesh, getApplication()));
     }
 
     @Override
@@ -89,7 +113,7 @@ public class PCState extends BaseAppState {
         this.app.getRootNode().detachChild(charNode);
         charNode.detachAllChildren();
         charNode.removeControl(PCControl.class);
-        charNode.removeControl(MovementControl.class);
+        charNode.removeControl(NavigationControl.class);
         charNode.removeControl(AnimationControl.class);
     }
 
@@ -99,8 +123,6 @@ public class PCState extends BaseAppState {
     @Override
     protected void onEnable() {
         getInputManager().addListener(actionListener, ListenerKey.PICK);
-        getInputManager().addListener(charNode.getControl(PCControl.class),
-                ListenerKey.JUMP);
         //add PCControl to PhysicsSpace
         getPhysicsSpace().add(charNode);
         //add char to game
@@ -202,10 +224,10 @@ public class PCState extends BaseAppState {
                     mark.setLocalTranslation(closest.getContactPoint());
                     app.getRootNode().attachChild(mark);
 
-                    if (!getMovementControl().isPathfinding()) {
-                        getMovementControl().getNavi().clearPath();
-                        getMovementControl().setWayPosition(null);
-                        getMovementControl().
+                    if (!getNavigationControl().isPathfinding()) {
+                        getNavigationControl().clearPath();
+                        getNavigationControl().setWayPosition(null);
+                        getNavigationControl().
                                 setTarget(closest.getContactPoint());
                         System.out.println("  Closest Contact " + closest.
                                 getContactPoint());
@@ -223,9 +245,9 @@ public class PCState extends BaseAppState {
         return getState(BulletAppState.class).getPhysicsSpace();
     }
 
-    //get the movement control
-    private MovementControl getMovementControl() {
-        return charNode.getControl(MovementControl.class);
+    //get the NavMeshNavigation control
+    private NavigationControl getNavigationControl() {
+        return charNode.getControl(NavigationControl.class);
     }
 
     //get the input manager
