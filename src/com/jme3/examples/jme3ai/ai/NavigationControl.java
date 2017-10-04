@@ -38,6 +38,7 @@ import com.jme3.examples.jme3ai.controls.PCControl;
 import com.jme3.examples.jme3ai.enums.EnumPosition;
 import com.jme3.examples.jme3ai.interfaces.DataKey;
 import com.jme3.examples.jme3ai.interfaces.ListenerKey;
+import com.jme3.examples.jme3ai.interfaces.Pickable;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.math.Spline;
@@ -59,29 +60,29 @@ import java.util.logging.Logger;
 
 /**
  * This class implements NavigationControl but actually extends Pathfinder which
- * uses the NavMesh, you can replace it with any Pathfinding system. It will be
- * used by the AutonomousControl then.
+ * uses the NavMesh, you can replace it with any Pathfinding system.
  *
- * @author normenhansen
+ * @author adapted by mitm from the MonkeyZone project written by normenhansen.
  */
-public class NavigationControl extends NavMeshPathfinder implements Control, JmeCloneable {
-
-    private final ScheduledExecutorService executor;
-    private Spatial spatial;
-    private Vector3f target;
-    private boolean pathfinding;
-    private Vector3f wayPosition;
+public class NavigationControl extends NavMeshPathfinder implements Control,
+        JmeCloneable, Pickable {
     private static final Logger LOG = Logger.getLogger(NavigationControl.class.
             getName());
+    private final ScheduledExecutorService executor;
+    private PCControl pcControl;
+    private Spatial spatial;
+    private boolean pathfinding;
+    private Vector3f wayPosition;
     private final boolean debug;
     private MotionPath motionPath;
     private boolean showPath;
     private final SimpleApplication app;
+    private Vector3f target;
 
-    public NavigationControl(NavMesh navMesh, Application app) {
+    public NavigationControl(NavMesh navMesh, Application app, boolean debug) {
         super(navMesh);
         this.app = (SimpleApplication) app;
-        this.debug = true;
+        this.debug = debug;
         if (debug) {
             motionPath = new MotionPath();
             motionPath.setPathSplineType(Spline.SplineType.Linear);
@@ -101,13 +102,13 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
             throw new RuntimeException("Can't clone control for spatial", e);
         }
     }
-    
+
     @Override
     public Object jmeClone() {
         try {
             return super.clone();
-        } catch( CloneNotSupportedException e ) {
-            throw new RuntimeException( "Can't clone control for spatial", e );
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Can't clone control for spatial", e);
         }
     }
 
@@ -125,6 +126,13 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
         this.spatial = spatial;
         if (spatial == null) {
             shutdownAndAwaitTermination(executor);
+            pcControl = null;
+        } else {
+            pcControl = spatial.getControl(PCControl.class);
+            if (pcControl == null) {
+                throw new IllegalStateException(
+                        "Cannot add NavigationControl to spatial without PCControl!");
+            }
         }
     }
 
@@ -150,8 +158,8 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
 
     @Override
     public void update(float tpf) {
-        Vector3f spatialPosition = spatial.getWorldTranslation();
         if (getWayPosition() != null) {
+            Vector3f spatialPosition = spatial.getWorldTranslation();
             Vector2f aiPosition = new Vector2f(spatialPosition.x,
                     spatialPosition.z);
             Vector2f waypoint2D = new Vector2f(getWayPosition().x,
@@ -161,15 +169,14 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
             if (distance > .25f) {
                 Vector2f direction = waypoint2D.subtract(aiPosition);
                 direction.mult(tpf);
-                getPCControl().setViewDirection(new Vector3f(direction.x, 0,
+                pcControl.setViewDirection(new Vector3f(direction.x, 0,
                         direction.y).normalize());
-                getPCControl().onAction(ListenerKey.MOVE_FORWARD, true, 1);
+                pcControl.onAction(ListenerKey.MOVE_FORWARD, true, 1);
             } else {
                 setWayPosition(null);
             }
         } else if (!isPathfinding() && getNextWaypoint() != null
                 && !isAtGoalWaypoint()) {
-            //called from the update loop
             if (showPath) {
                 showPath();
                 showPath = false;
@@ -191,7 +198,7 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
                 stopFeetPlaying();
                 stopTorsoPlaying();
             }
-            getPCControl().onAction(ListenerKey.MOVE_FORWARD, false, 1);
+            pcControl.onAction(ListenerKey.MOVE_FORWARD, false, 1);
         }
     }
 
@@ -215,6 +222,8 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
     private void startPathFinder() {
         executor.scheduleWithFixedDelay(() -> {
             if (target != null) {
+                clearPath();
+                setWayPosition(null);
                 pathfinding = true;
                 //setPosition must be set before computePath is called.
                 setPosition(spatial.getWorldTranslation());
@@ -246,31 +255,10 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
     }
 
     /**
-     * @return the target
-     */
-    public Vector3f getTarget() {
-        return target;
-    }
-
-    /**
-     * @param target the target to set
-     */
-    public void setTarget(Vector3f target) {
-        this.target = target;
-    }
-
-    /**
      * @return the pathfinding
      */
     public boolean isPathfinding() {
         return pathfinding;
-    }
-
-    /**
-     * @return the PCControl
-     */
-    public PCControl getPCControl() {
-        return spatial.getControl(PCControl.class);
     }
 
     /**
@@ -323,6 +311,14 @@ public class NavigationControl extends NavMeshPathfinder implements Control, Jme
             motionPath.addWayPoint(wp.getPosition());
         }
         motionPath.enableDebugShape(app.getAssetManager(), app.getRootNode());
+    }
+
+    /**
+     * @param target the target to set
+     */
+    @Override
+    public void setTarget(Vector3f target) {
+        this.target = target;
     }
 
 }

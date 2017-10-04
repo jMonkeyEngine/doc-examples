@@ -58,7 +58,7 @@ import org.critterai.nmgen.IntermediateData;
  * NavMesh.
  *
  * @author sploreg
- * @author mitm
+ * @author edits added by mitm
  */
 public class NavMeshState extends BaseAppState {
 
@@ -72,7 +72,6 @@ public class NavMeshState extends BaseAppState {
     protected void initialize(Application app) {
         this.app = (SimpleApplication) app;
         //generate NavMesh
-        startGenerator();
         createNavMesh();
     }
 
@@ -104,7 +103,10 @@ public class NavMeshState extends BaseAppState {
         //TODO: implement behavior during runtime
     }
 
-    private void startGenerator() {
+    /**
+     * creates the NavMesh
+     */
+    private void createNavMesh() {
         generator = new NavMeshGenerator();
         //The width and depth resolution used when sampling the source geometry. 
         //outdoors = agentRadius/2, indoors = agentRadius/3, cellSize = 
@@ -187,12 +189,6 @@ public class NavMeshState extends BaseAppState {
         //navigation mesh.
         IntermediateData data = new IntermediateData();
         generator.setIntermediateData(data);
-    }
-
-    /**
-     * creates the nav mesh for the loaded level
-     */
-    public void createNavMesh() {
 
         Mesh mesh = new Mesh();
         GeometryBatchFactory.mergeGeometries(findGeometries(app.getRootNode(),
@@ -206,7 +202,7 @@ public class NavMeshState extends BaseAppState {
         
         Mesh optiMesh = generator.optimize(mesh);
         navMesh.loadFromMesh(optiMesh);
-
+        
         Geometry geom = new Geometry(DataKey.NAVMESH);
         geom.setMesh(optiMesh);
         //display the mesh

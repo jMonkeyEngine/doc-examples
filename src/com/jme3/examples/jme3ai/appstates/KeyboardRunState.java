@@ -38,23 +38,29 @@ import com.jme3.input.CameraInput;
 
 /**
  * Keyboard mappings.
- * 
+ *
  * @author mitm
  */
 public class KeyboardRunState extends BaseAppState {
-    
+
     @Override
-    protected void initialize(Application app) { 
-        app.getInputManager().addMapping(ListenerKey.PAUSE, new KeyTrigger(KeyInput.KEY_F1));
-        app.getInputManager().addMapping(ListenerKey.PICK, new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+    protected void initialize(Application app) {
+        app.getInputManager().addMapping(ListenerKey.PAUSE, new KeyTrigger(
+                KeyInput.KEY_F1));
+        app.getInputManager().addMapping(ListenerKey.PICK,
+                new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         //map ChaseCamera rotation keys, must be called after PCState getHead()
         //because setToggleRotationTrigger clears the triggers before adding new
         //KEY_RIGHT -> clockwise
-        app.getInputManager().addMapping(CameraInput.CHASECAM_MOVERIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
+        app.getInputManager().addMapping(CameraInput.CHASECAM_MOVERIGHT,
+                new KeyTrigger(KeyInput.KEY_RIGHT));
         //KEY_LEFT <- counter clockwise
-        app.getInputManager().addMapping(CameraInput.CHASECAM_MOVELEFT, new KeyTrigger(KeyInput.KEY_LEFT));
-        app.getInputManager().addMapping(CameraInput.CHASECAM_DOWN, new KeyTrigger(KeyInput.KEY_DOWN));
-        app.getInputManager().addMapping(CameraInput.CHASECAM_UP, new KeyTrigger(KeyInput.KEY_UP));
+        app.getInputManager().addMapping(CameraInput.CHASECAM_MOVELEFT,
+                new KeyTrigger(KeyInput.KEY_LEFT));
+        app.getInputManager().addMapping(CameraInput.CHASECAM_DOWN,
+                new KeyTrigger(KeyInput.KEY_DOWN));
+        app.getInputManager().addMapping(CameraInput.CHASECAM_UP,
+                new KeyTrigger(KeyInput.KEY_UP));
     }
 
     @Override
@@ -79,7 +85,7 @@ public class KeyboardRunState extends BaseAppState {
         //either because setEnabled(false) was called or the state is being 
         //cleaned up.
     }
-    
+
     @Override
     public void update(float tpf) {
         //TODO: implement behavior during runtime

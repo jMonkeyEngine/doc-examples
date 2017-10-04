@@ -55,6 +55,7 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.examples.jme3ai.enums.EnumPosition;
 import com.jme3.examples.jme3ai.interfaces.DataKey;
 import com.jme3.examples.jme3ai.interfaces.ListenerKey;
+import com.jme3.examples.jme3ai.interfaces.Pickable;
 import com.jme3.input.InputManager;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseButtonTrigger;
@@ -67,14 +68,14 @@ import com.jme3.input.controls.MouseButtonTrigger;
 public class PCState extends BaseAppState {
 
     private SimpleApplication app;
-    private Node charNode, head;
+    private Node charNode;
     private Geometry mark;
     private ClickedListener actionListener;
+    private Pickable picked;
 
     @Override
     protected void initialize(Application app) {
         this.app = (SimpleApplication) app;
-        //listener for picking
         actionListener = new ClickedListener();
         initChar();
         initMark();
@@ -102,10 +103,14 @@ public class PCState extends BaseAppState {
         charNode.addControl(new PCControl(.6f, 1.8f, 80f));
         //control for animations
         charNode.addControl(new AnimationControl());
+        //load NavMesh geometry saved to assets folder
         Geometry navGeom = (Geometry) getApplication().getAssetManager().
                 loadModel("Scenes/NavMesh/NavMesh.j3o");
-        NavMesh navMesh = new NavMesh(navGeom.getMesh());
-        charNode.addControl(new NavigationControl(navMesh, getApplication()));
+        NavigationControl navControl = new NavigationControl(new NavMesh(
+                navGeom.getMesh()), getApplication(), true);
+        charNode.addControl(navControl);
+        //NavigationControl implements Pickable Interface 
+        picked = navControl;
     }
 
     @Override
@@ -132,7 +137,6 @@ public class PCState extends BaseAppState {
     @Override
     protected void onDisable() {
         getInputManager().removeListener(actionListener);
-        getInputManager().removeListener(charNode.getControl(PCControl.class));
         //remove PCControl from PhysicsSpace
         getPhysicsSpace().remove(charNode);
         //remove char from game
@@ -150,7 +154,7 @@ public class PCState extends BaseAppState {
     protected void initMark() {
         Sphere sphere = new Sphere(30, 30, 0.2f);
         mark = new Geometry("BOOM!", sphere);
-        Material mark_mat = new Material(app.getAssetManager(),
+        Material mark_mat = new Material(getApplication().getAssetManager(),
                 "Common/MatDefs/Misc/Unshaded.j3md");
         mark_mat.setColor("Color", ColorRGBA.Red);
         mark.setMaterial(mark_mat);
@@ -158,10 +162,10 @@ public class PCState extends BaseAppState {
 
     //Create the 3rd person view.
     private Node getHead(BoundingBox bounds) {
-        head = new Node("headNode");
+        Node head = new Node("headNode");
         //ofset head node using spatial bounds to position head level
         head.setLocalTranslation(0, bounds.getYExtent() * 2, 0);
-        //use offset head node as target for cam to follow
+        //use offset head node as pickManager for cam to follow
         ChaseCamera chaseCam = new ChaseCamera(app.getCamera(), head,
                 getInputManager());
         //Set arrow keys to rotate view, sets CHASECAM_TOGGLEROTATE, you map the 
@@ -198,9 +202,9 @@ public class PCState extends BaseAppState {
             if (name.equals(ListenerKey.PICK) && !isPressed) {
                 CollisionResults results = new CollisionResults();
                 Vector2f click2d = getInputManager().getCursorPosition().clone();
-                Vector3f click3d = getApplication().getCamera().
-                        getWorldCoordinates(click2d, 0f).clone();
-                Vector3f dir = getApplication().getCamera().getWorldCoordinates(
+                Vector3f click3d = app.getCamera().getWorldCoordinates(click2d,
+                        0f).clone();
+                Vector3f dir = app.getCamera().getWorldCoordinates(
                         click2d, 1f).subtractLocal(click3d).normalizeLocal();
                 Ray ray = new Ray(click3d, dir);
                 app.getRootNode().collideWith(ray, results);
@@ -223,15 +227,9 @@ public class PCState extends BaseAppState {
                     // Let's interact - we mark the hit with a red dot.
                     mark.setLocalTranslation(closest.getContactPoint());
                     app.getRootNode().attachChild(mark);
-
-                    if (!getNavigationControl().isPathfinding()) {
-                        getNavigationControl().clearPath();
-                        getNavigationControl().setWayPosition(null);
-                        getNavigationControl().
-                                setTarget(closest.getContactPoint());
-                        System.out.println("  Closest Contact " + closest.
-                                getContactPoint());
-                    }
+                    picked.setTarget(closest.getContactPoint());
+                    System.out.println("  Closest Contact " + closest.
+                            getContactPoint());
                 } else {
                     // No hits? Then remove the red mark.
                     app.getRootNode().detachChild(mark);
@@ -243,11 +241,6 @@ public class PCState extends BaseAppState {
     //get the physics space
     private PhysicsSpace getPhysicsSpace() {
         return getState(BulletAppState.class).getPhysicsSpace();
-    }
-
-    //get the NavMeshNavigation control
-    private NavigationControl getNavigationControl() {
-        return charNode.getControl(NavigationControl.class);
     }
 
     //get the input manager
