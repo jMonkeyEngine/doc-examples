@@ -80,7 +80,7 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
     private Vector3f target;
 
     public NavigationControl(NavMesh navMesh, Application app, boolean debug) {
-        super(navMesh);
+        super(navMesh); //sets the NavMesh for this control
         this.app = (SimpleApplication) app;
         this.debug = debug;
         if (debug) {
@@ -227,18 +227,24 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
                 pathfinding = true;
                 //setPosition must be set before computePath is called.
                 setPosition(spatial.getWorldTranslation());
-                //computePath() adds the target to the end of the path.
-                //computePath() adds one endpoint to the cell nearest target 
-                //only if you are not in the goalCell.
-                //If inside goalCell, computePath() will do a direct line of 
-                //sight placement of target. 
-                //This all means endpoint is always outside the navMesh when 
-                //target is outside navMesh. 
+                //*The first waypoint on any path is the one you set with 
+                //`setPosition()`.
+                //*The last waypoint on any path is always the `target` Vector3f.
+                //computePath() adds one waypoint to the cell *nearest* to the 
+                //target only if you are not in the goalCell (the cell target is in), 
+                //and if there is a cell between first and last waypoint, 
+                //and if there is no direct line of sight. 
+                //*If inside the goalCell when a new target is selected, 
+                //computePath() will do a direct line of sight placement of 
+                //target. This means there will only be 2 waypoints set, 
+                //`setPosition()` and `target`.
+                //*If the `target` is outside the `NavMesh`, your endpoint will 
+                //be also.
                 //warpInside(target) moves endpoint within the navMesh always.
                 warpInside(target);
                 System.out.println("Target " + target);
                 boolean success;
-                //comput the path
+                //compute the path
                 success = computePath(target);
                 System.out.println("SUCCESS = " + success);
                 if (success) {

@@ -53,10 +53,10 @@ public class PCControl extends BetterCharacterControl implements ActionListener 
     @Override
     public void update(float tpf) {
         super.update(tpf);
-        this.moveSpeed = 0;
-        Vector3f modelForwardDir = spatial.getWorldRotation().mult(Vector3f.UNIT_Z);  
+        this.moveSpeed = 0;  
         walkDirection.set(0, 0, 0);
         if (forward) {
+            Vector3f modelForwardDir = spatial.getWorldRotation().mult(Vector3f.UNIT_Z);
             position = getPositionType();
             for (EnumPosition pos : EnumPosition.values()) {
                 if (pos.position() == position) {
