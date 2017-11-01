@@ -32,7 +32,7 @@ package com.jme3.examples.jme3ai.enums;
  * 
  * @author mitm
  */
-public enum EnumPosition {
+public enum EnumPosType {
 
     POS_DEAD(0, 0.0f),
     POS_MORTAL(1, 0.0f),
@@ -50,7 +50,7 @@ public enum EnumPosition {
     private final float speed;
     private final int position;
 
-    EnumPosition(int position, float speed) {
+    EnumPosType(int position, float speed) {
         this.speed = speed;
         this.position = position;
     }

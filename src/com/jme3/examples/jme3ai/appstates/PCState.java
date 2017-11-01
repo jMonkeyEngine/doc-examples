@@ -52,7 +52,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.examples.jme3ai.enums.EnumPosition;
+import com.jme3.examples.jme3ai.enums.EnumPosType;
 import com.jme3.examples.jme3ai.interfaces.DataKey;
 import com.jme3.examples.jme3ai.interfaces.ListenerKey;
 import com.jme3.examples.jme3ai.interfaces.Pickable;
@@ -97,7 +97,7 @@ public class PCState extends BaseAppState {
         charNode.attachChild(getHead(bounds));
         charNode.attachChild(spatial);
         //set starting position of spatial
-        charNode.setUserData(DataKey.POSITION_TYPE, EnumPosition.POS_STANDING.positionType());
+        charNode.setUserData(DataKey.POSITION_TYPE, EnumPosType.POS_STANDING.positionType());
         //control that moves spatial
         charNode.addControl(new PCControl(.6f, 1.8f, 80f));
         //control for animations

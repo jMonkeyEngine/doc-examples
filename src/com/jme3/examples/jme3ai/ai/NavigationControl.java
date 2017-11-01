@@ -35,7 +35,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.cinematic.MotionPath;
 import com.jme3.examples.jme3ai.controls.AnimationControl;
 import com.jme3.examples.jme3ai.controls.PCControl;
-import com.jme3.examples.jme3ai.enums.EnumPosition;
+import com.jme3.examples.jme3ai.enums.EnumPosType;
 import com.jme3.examples.jme3ai.interfaces.DataKey;
 import com.jme3.examples.jme3ai.interfaces.ListenerKey;
 import com.jme3.examples.jme3ai.interfaces.Pickable;
@@ -186,15 +186,15 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
             setWayPosition(new Vector3f(getWaypointPosition()));
 
             //set spatial physical position
-            if (getPosType() == EnumPosition.POS_STANDING.positionType()) {
-                setPositionType(EnumPosition.POS_RUNNING.positionType());
+            if (getPosType() == EnumPosType.POS_STANDING.positionType()) {
+                setPositionType(EnumPosType.POS_RUNNING.positionType());
                 stopFeetPlaying();
                 stopTorsoPlaying();
             }
         } else {
             //waypoint null so stop moving and set spatials physical position
-            if (getPosType() == EnumPosition.POS_RUNNING.positionType()) {
-                setPositionType(EnumPosition.POS_STANDING.positionType());
+            if (getPosType() == EnumPosType.POS_RUNNING.positionType()) {
+                setPositionType(EnumPosType.POS_STANDING.positionType());
                 stopFeetPlaying();
                 stopTorsoPlaying();
             }
@@ -286,9 +286,9 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
         return (int) spatial.getUserData(DataKey.POSITION_TYPE);
     }
 
-    //Sets the physical position of a spatial.
-    private void setPositionType(int position) {
-        spatial.setUserData(DataKey.POSITION_TYPE, position);
+    //Sets the physical posType of a spatial.
+    private void setPositionType(int posType) {
+        spatial.setUserData(DataKey.POSITION_TYPE, posType);
     }
 
     //Stops the torso channel if playing an animation.

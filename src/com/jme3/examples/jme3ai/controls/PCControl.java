@@ -31,12 +31,12 @@ import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
-import com.jme3.examples.jme3ai.enums.EnumPosition;
+import com.jme3.examples.jme3ai.enums.EnumPosType;
 import com.jme3.examples.jme3ai.interfaces.DataKey;
 import com.jme3.examples.jme3ai.interfaces.ListenerKey;
 
 /**
- * Controls the spatials movement. Speed is derived from EnumPosition.
+ * Controls the spatials movement. Speed is derived from EnumPosType.
  * 
  * @author mitm
  */
@@ -58,11 +58,11 @@ public class PCControl extends BetterCharacterControl implements ActionListener 
         if (forward) {
             Vector3f modelForwardDir = spatial.getWorldRotation().mult(Vector3f.UNIT_Z);
             position = getPositionType();
-            for (EnumPosition pos : EnumPosition.values()) {
+            for (EnumPosType pos : EnumPosType.values()) {
                 if (pos.positionType() == position) {
                     switch (pos) {
                         case POS_RUNNING:
-                            moveSpeed = EnumPosition.POS_RUNNING.speed();
+                            moveSpeed = EnumPosType.POS_RUNNING.speed();
                             break;                            
                         default:
                             moveSpeed = 0f;

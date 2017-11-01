@@ -45,7 +45,7 @@ import com.jme3.scene.control.Control;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.jme3.examples.jme3ai.enums.EnumPosition;
+import com.jme3.examples.jme3ai.enums.EnumPosType;
 import com.jme3.examples.jme3ai.interfaces.AnimInput;
 import com.jme3.examples.jme3ai.interfaces.DataKey;
 
@@ -89,7 +89,7 @@ public class AnimationControl extends AbstractControl {
         }
 
         posType = getPosType();
-        for (EnumPosition pos : EnumPosition.values()) {
+        for (EnumPosType pos : EnumPosType.values()) {
             if (pos.positionType() == posType) {
                 switch (pos) {
                     case POS_RUNNING:
@@ -156,7 +156,7 @@ public class AnimationControl extends AbstractControl {
             //posType is set by NavigationControl after game start
             posType = getPosType();
 
-            for (EnumPosition pos : EnumPosition.values()) {
+            for (EnumPosType pos : EnumPosType.values()) {
                 if (pos.positionType() == posType) {
                     switch (pos) {
                         case POS_RUNNING:
