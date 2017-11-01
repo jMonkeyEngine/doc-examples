@@ -88,9 +88,9 @@ public class AnimationControl extends AbstractControl {
             throw new RuntimeException();
         }
 
-        position = getPosition();
+        position = getPositionType();
         for (EnumPosition pos : EnumPosition.values()) {
-            if (pos.position() == position) {
+            if (pos.positionType() == position) {
                 switch (pos) {
                     case POS_RUNNING:
                         feetChannel.setAnim(AnimInput.RUN_BASE);
@@ -154,10 +154,10 @@ public class AnimationControl extends AbstractControl {
         public void onAnimCycleDone(AnimControl control, AnimChannel channel,
                 String animName) {
             //position is set by MovementControl after game start
-            position = getPosition();
+            position = getPositionType();
 
             for (EnumPosition pos : EnumPosition.values()) {
-                if (pos.position() == position) {
+                if (pos.positionType() == position) {
                     switch (pos) {
                         case POS_RUNNING:
                             if (channel.equals(feetChannel)) {
@@ -209,7 +209,7 @@ public class AnimationControl extends AbstractControl {
      *
      * @return spatials physical position
      */
-    private int getPosition() {
-        return (int) spatial.getUserData(DataKey.POSITION);
+    private int getPositionType() {
+        return (int) spatial.getUserData(DataKey.POSITION_TYPE);
     }
 }

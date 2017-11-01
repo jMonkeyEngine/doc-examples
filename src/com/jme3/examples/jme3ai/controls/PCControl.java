@@ -59,7 +59,7 @@ public class PCControl extends BetterCharacterControl implements ActionListener 
             Vector3f modelForwardDir = spatial.getWorldRotation().mult(Vector3f.UNIT_Z);
             position = getPositionType();
             for (EnumPosition pos : EnumPosition.values()) {
-                if (pos.position() == position) {
+                if (pos.positionType() == position) {
                     switch (pos) {
                         case POS_RUNNING:
                             moveSpeed = EnumPosition.POS_RUNNING.speed();
@@ -106,7 +106,7 @@ public class PCControl extends BetterCharacterControl implements ActionListener 
     
     //gets the physical position of spatial
     private int getPositionType() {
-        return (int) spatial.getUserData(DataKey.POSITION);
+        return (int) spatial.getUserData(DataKey.POSITION_TYPE);
     }
 
 }

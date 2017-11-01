@@ -97,8 +97,7 @@ public class PCState extends BaseAppState {
         charNode.attachChild(getHead(bounds));
         charNode.attachChild(spatial);
         //set starting position of spatial
-        charNode.setUserData(DataKey.POSITION, EnumPosition.POS_STANDING.
-                position());
+        charNode.setUserData(DataKey.POSITION_TYPE, EnumPosition.POS_STANDING.positionType());
         //control that moves spatial
         charNode.addControl(new PCControl(.6f, 1.8f, 80f));
         //control for animations

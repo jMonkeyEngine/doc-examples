@@ -33,7 +33,7 @@ package com.jme3.examples.jme3ai.interfaces;
  * @author mitm
  */
 public interface DataKey {
-    static final String POSITION = "position";
+    static final String POSITION_TYPE = "position_type";
     static final String START_POSITION = "start_position";
     static final String MOVE = "move";
     static final String MAX_MOVE = "max_move";

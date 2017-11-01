@@ -165,7 +165,7 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
             Vector2f waypoint2D = new Vector2f(getWayPosition().x,
                     getWayPosition().z);
             float distance = aiPosition.distance(waypoint2D);
-            //move char between waypoints untill waypoint reached then set null
+            //move char between waypoints until waypoint reached then set null
             if (distance > .25f) {
                 Vector2f direction = waypoint2D.subtract(aiPosition);
                 direction.mult(tpf);
@@ -186,15 +186,15 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
             setWayPosition(new Vector3f(getWaypointPosition()));
 
             //set spatial physical position
-            if (getPositionType() == EnumPosition.POS_STANDING.position()) {
-                setPositionType(EnumPosition.POS_RUNNING.position());
+            if (getPositionType() == EnumPosition.POS_STANDING.positionType()) {
+                setPositionType(EnumPosition.POS_RUNNING.positionType());
                 stopFeetPlaying();
                 stopTorsoPlaying();
             }
         } else {
             //waypoint null so stop moving and set spatials physical position
-            if (getPositionType() == EnumPosition.POS_RUNNING.position()) {
-                setPositionType(EnumPosition.POS_STANDING.position());
+            if (getPositionType() == EnumPosition.POS_RUNNING.positionType()) {
+                setPositionType(EnumPosition.POS_STANDING.positionType());
                 stopFeetPlaying();
                 stopTorsoPlaying();
             }
@@ -283,12 +283,12 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
 
     //looks at UserData for the physical position of a spatial.
     private int getPositionType() {
-        return (int) spatial.getUserData(DataKey.POSITION);
+        return (int) spatial.getUserData(DataKey.POSITION_TYPE);
     }
 
     //Sets the physical position of a spatial.
     private void setPositionType(int position) {
-        spatial.setUserData(DataKey.POSITION, position);
+        spatial.setUserData(DataKey.POSITION_TYPE, position);
     }
 
     //Stops the torso channel if playing an animation.

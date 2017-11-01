@@ -65,7 +65,7 @@ public enum EnumPosition {
     /**
      * @return the position
      */
-    public int position() {
+    public int positionType() {
         return position;
     }
 
