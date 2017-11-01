@@ -186,14 +186,14 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
             setWayPosition(new Vector3f(getWaypointPosition()));
 
             //set spatial physical position
-            if (getPositionType() == EnumPosition.POS_STANDING.positionType()) {
+            if (getPosType() == EnumPosition.POS_STANDING.positionType()) {
                 setPositionType(EnumPosition.POS_RUNNING.positionType());
                 stopFeetPlaying();
                 stopTorsoPlaying();
             }
         } else {
             //waypoint null so stop moving and set spatials physical position
-            if (getPositionType() == EnumPosition.POS_RUNNING.positionType()) {
+            if (getPosType() == EnumPosition.POS_RUNNING.positionType()) {
                 setPositionType(EnumPosition.POS_STANDING.positionType());
                 stopFeetPlaying();
                 stopTorsoPlaying();
@@ -282,7 +282,7 @@ public class NavigationControl extends NavMeshPathfinder implements Control,
     }
 
     //looks at UserData for the physical position of a spatial.
-    private int getPositionType() {
+    private int getPosType() {
         return (int) spatial.getUserData(DataKey.POSITION_TYPE);
     }
 

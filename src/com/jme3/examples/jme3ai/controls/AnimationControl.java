@@ -51,7 +51,7 @@ import com.jme3.examples.jme3ai.interfaces.DataKey;
 
 /**
  * Implements all animations of a spatial by reading the spatials physical 
- * position. Spatial must have AnimControl to use this control.
+ posType. Spatial must have AnimControl to use this control.
  *
  * @author mitm
  */
@@ -61,7 +61,7 @@ public class AnimationControl extends AbstractControl {
     private AnimControl animControl;
     private static final Logger LOG = Logger.getLogger(AnimationControl.class.
             getName());
-    private int position;
+    private int posType;
 
     @Override
     public void setSpatial(Spatial spatial) {
@@ -88,9 +88,9 @@ public class AnimationControl extends AbstractControl {
             throw new RuntimeException();
         }
 
-        position = getPositionType();
+        posType = getPosType();
         for (EnumPosition pos : EnumPosition.values()) {
-            if (pos.positionType() == position) {
+            if (pos.positionType() == posType) {
                 switch (pos) {
                     case POS_RUNNING:
                         feetChannel.setAnim(AnimInput.RUN_BASE);
@@ -146,18 +146,18 @@ public class AnimationControl extends AbstractControl {
         //out.write(this.value, "name", defaultValue);
     }
 
-    //Checks spatial physical position whenver an animation ends. Sets animation 
-    //based off that position.
+    //Checks spatial physical posType whenver an animation ends. Sets animation 
+    //based off that posType.
     private class AnimationEventListener implements AnimEventListener {
 
         @Override
         public void onAnimCycleDone(AnimControl control, AnimChannel channel,
                 String animName) {
-            //position is set by MovementControl after game start
-            position = getPositionType();
+            //posType is set by NavigationControl after game start
+            posType = getPosType();
 
             for (EnumPosition pos : EnumPosition.values()) {
-                if (pos.positionType() == position) {
+                if (pos.positionType() == posType) {
                     switch (pos) {
                         case POS_RUNNING:
                             if (channel.equals(feetChannel)) {
@@ -207,9 +207,9 @@ public class AnimationControl extends AbstractControl {
 
     /**
      *
-     * @return spatials physical position
+     * @return spatials physical posType
      */
-    private int getPositionType() {
+    private int getPosType() {
         return (int) spatial.getUserData(DataKey.POSITION_TYPE);
     }
 }
