@@ -88,11 +88,10 @@ public class PCState extends BaseAppState {
         //scale spatial
         spatial.setLocalScale(1.8f / (bounds.getYExtent() * 2));
         bounds = (BoundingBox) spatial.getWorldBound();
+        //spatial origin is at center so need to offset
         spatial.setLocalTranslation(0, bounds.getYExtent()
                 - bounds.getCenter().y, 0);
-        //spatial origin is at center so need to offset by using Node
         charNode = new Node("charNode");
-        charNode.setLocalTranslation(new Vector3f(0, bounds.getYExtent(), 0));
         //attach ChaseCamera i.e. head.
         charNode.attachChild(getHead(bounds));
         charNode.attachChild(spatial);
